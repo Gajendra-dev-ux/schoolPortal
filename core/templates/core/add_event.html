@@ -1,0 +1,43 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-success mb-4">📸 नया गैलरी इवेंट जोड़ें (Multiple Photos)</h3>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">इवेंट का नाम (Event Title)</label>
+                        <input type="text" name="title" class="form-control" required placeholder="जैसे: Annual Sports Day 2026">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">इवेंट की तारीख (Date)</label>
+                        <input type="date" name="date" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">विवरण (Description)</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="इवेंट के बारे में कुछ पंक्तियाँ..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-danger">एक साथ कई तस्वीरें चुनें (Multiple Photos)</label>
+                        <!-- multiple attribute yahan multiple photos select karne ki suvidha deta hai -->
+                        <input type="file" name="photos" class="form-control" multiple accept="image/*" required>
+                        <small class="text-muted">Ctrl दबाकर या मोबाइल से एक साथ कई फोटो चुन सकते हैं।</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">इवेंट और सभी फोटो सुरक्षित करें</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'dashboard' %}" class="text-muted text-decoration-none">← डैशबोर्ड पर वापस जाएं</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

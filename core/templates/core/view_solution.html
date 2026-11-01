@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 p-4 mb-4 text-center bg-light">
+            <h2 class="text-primary mb-2">📊 आपकी रिस्पॉन्स शीट और समाधान</h2>
+            <h4 class="text-secondary mb-3">{{ test.title }} (विषय: {{ test.subject }})</h4>
+            <h3 class="fw-bold text-success">कुल प्राप्त स्कोर: {{ obtained_score }} / {{ total_score }}</h3>
+            <p class="mb-0 text-muted">✔️ सही MCQ: {{ correct_count }} | ❌ गलत MCQ: {{ incorrect_count }}</p>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+            <h4 class="text-secondary mb-3">📖 सभी प्रश्नों के उत्तर और शिक्षक की जाँच</h4>
+            <hr>
+            {% for item in saved_answers_data %}
+                <div class="mb-4 p-3 border rounded bg-white shadow-sm">
+                    <p class="fw-bold text-dark">प्रश्न: {{ item.answer.question.question_text }}</p>
+                    {% if item.answer.question.question_type == 'mcq' %}
+                        <p class="mb-1">आपने चुना था: <strong class="{% if item.answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ item.answer.selected_option|default:"कोई विकल्प नहीं" }}</strong></p>
+                        <p class="mb-0 text-success"><strong>सही उत्तर: {{ item.answer.question.correct_option }}</strong></p>
+                    {% else %}
+                        <p class="mb-1 text-muted">आपका लिखित उत्तर: {{ item.answer.answer_text|default:"लिखित उत्तर उपलब्ध नहीं" }}</p>
+                        {% if item.answer.answer_image %}
+                            <p class="mb-2"><a href="{{ item.answer.answer_image.url }}" target="_blank" class="small">अपलोड की गई कॉपी देखें</a></p>
+                        {% endif %}
+                        
+                        <!-- Teacher Feedback Display for Student -->
+                        {% if item.evaluation %}
+                            <div class="alert alert-success mt-2 mb-0 py-2">
+                                <small><strong>शिक्षक द्वारा दिए गए अंक:</strong> {{ item.evaluation.obtained_marks }} / {{ item.answer.question.max_marks }}</small><br>
+                                {% if item.evaluation.teacher_remarks %}
+                                    <small><strong>टिप्पणी (Remarks):</strong> {{ item.evaluation.teacher_remarks }}</small>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning mt-2 mb-0 py-2">
+                                <small>⏳ इस प्रश्न की जाँच अभी शिक्षक द्वारा बाकी है।</small>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-muted text-center">कोई उत्तर नहीं मिला।</p>
+            {% endfor %}
+            
+            <div class="d-flex justify-content-between mt-3">
+                <a href="{% url 'subject_tests' test.subject %}" class="btn btn-secondary">← विषय पर वापस जाएं</a>
+                <a href="{% url 'take_test' test.id %}" class="btn btn-success">🔄 इस टेस्ट को Reattempt करें</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

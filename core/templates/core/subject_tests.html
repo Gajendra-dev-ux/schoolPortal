@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2>📂 विषय: {{ subject_name }}</h2>
+        <p class="text-muted">यहाँ आप इस विषय के नए टेस्ट दे सकते हैं या पुराने हल किए गए टेस्ट दोबारा देख सकते हैं।</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">← सभी विषय पर वापस जाएं</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 1. Uplabdha (Available) Tests -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white fw-bold text-primary">📝 उपलब्ध टेस्ट (Available Tests)</div>
+            <div class="card-body">
+                {% if available_tests %}
+                    <ul class="list-group list-group-flush">
+                        {% for test in available_tests %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h5 class="mb-1 fw-bold">{{ test.title }}</h5>
+                                    <small class="text-muted">दिनांक: {{ test.created_at|date:"d M Y" }}</small>
+                                </div>
+                                <a href="{% url 'take_test' test.id %}" class="btn btn-sm btn-primary px-3">टेस्ट दें</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0 p-3">इस विषय में अभी कोई नया उपलब्ध टेस्ट नहीं है।</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Attempted (Hal kiye gaye) Tests with Reattempt & Solutions -->
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100 border-start border-success border-4">
+            <div class="card-header bg-white fw-bold text-success">🔄 हल किए गए टेस्ट (Attempted Tests)</div>
+            <div class="card-body">
+                {% if attempted_tests %}
+                    <ul class="list-group list-group-flush">
+                        {% for test in attempted_tests %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                                <div>
+                                    <h5 class="mb-1 fw-bold">{{ test.title }}</h5>
+                                    <small class="text-muted">हल किया जा चुका है</small>
+                                </div>
+                                <div>
+                                    <a href="{% url 'view_solution' test.id %}" class="btn btn-sm btn-outline-info me-1">حل / Solution</a>
+                                    <a href="{% url 'take_test' test.id %}" class="btn btn-sm btn-success">Reattempt</a>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted mb-0 p-3">आपने इस विषय में अभी तक कोई टेस्ट हल नहीं किया है।</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

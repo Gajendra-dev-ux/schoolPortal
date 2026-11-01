@@ -1,0 +1,41 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2 class="text-primary fw-bold">{{ event.title }}</h2>
+        <p class="text-muted mb-1">दिनांक: {{ event.date|date:"d M Y" }}</p>
+        <p class="text-secondary">{{ event.description }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'gallery' %}" class="btn btn-outline-secondary">← गैलरी पर वापस जाएं</a>
+    </div>
+</div>
+
+<hr class="mb-4">
+
+<!-- Is event ki saari images ka grid view -->
+<div class="row g-4">
+    {% for photo in all_photos %}
+        <div class="col-md-3 col-6">
+            <div class="card shadow-sm border-0 h-100">
+                <a href="{{ photo.image.url }}" target="_blank">
+                    <img src="{{ photo.image.url }}" class="card-img-top rounded shadow-sm" alt="Event Image" style="height: 200px; object-fit: cover;">
+                </a>
+                {% if photo.caption %}
+                    <div class="card-body p-2 text-center">
+                        <small class="text-muted">{{ photo.caption }}</small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-md-12">
+            <p class="text-muted text-center">इस इवेंट में अभी कोई तस्वीर नहीं है।</p>
+        </div>
+    {% endfor %}
+</div>
+
+<div class="mt-5 text-center">
+    <a href="{% url 'gallery' %}" class="btn btn-primary px-4 py-2">← गैलरी पर वापस जाएं</a>
+</div>
+{% endblock %}

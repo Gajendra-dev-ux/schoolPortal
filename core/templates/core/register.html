@@ -1,0 +1,23 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-center text-primary mb-4">✍️ नया खाता बनाएँ (Register)</h3>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    
+                    <button type="submit" class="btn btn-primary w-100 mt-3">रजिस्टर करें</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p class="text-muted">पपहले से खाता है? <a href="{% url 'login' %}">लॉगिन करें</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

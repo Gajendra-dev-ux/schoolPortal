@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>👨‍🎓 विद्यार्थी डैशबोर्ड (Student Portal)</h2>
+        <p class="text-muted">नमस्ते {{ request.user.username }}! आपकी कक्षा: <span class="badge bg-primary">{{ student_class }}</span></p>
+    </div>
+</div>
+
+<h3 class="text-secondary mb-3">📚 अपने विषय (Subjects) चुनें</h3>
+<div class="row g-4">
+    {% if subjects %}
+        {% for subject in subjects %}
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 h-100 border-start border-primary border-4">
+                    <div class="card-body text-center p-4">
+                        <h4 class="card-title fw-bold text-dark mb-3">📖 {{ subject }}</h4>
+                        <p class="text-muted small">इस विषय के सभी उपलब्ध और हल किए गए मॉक टेस्ट यहाँ देखें।</p>
+                        <a href="{% url 'subject_tests' subject %}" class="btn btn-primary w-100 fw-bold">विषय के टेस्ट देखें</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-md-12">
+            <div class="alert alert-info">आपकी कक्षा के लिए अभी कोई विषय या मॉक टेस्ट उपलब्ध नहीं है।</div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

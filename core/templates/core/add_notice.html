@@ -1,0 +1,37 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-primary mb-4">📌 नया नोटिस जारी करें</h3>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">शीर्षक (Title)</label>
+                        <input type="text" name="title" class="form-control" required placeholder="नोटिस का विषय लिखें...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">विवरण (Content)</label>
+                        <textarea name="content" class="form-control" rows="4" required placeholder="नोटिस की पूरी जानकारी लिखें..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">तस्वीर जोड़ें (Optional Image)</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        <small class="text-muted">यदि कोई फोटो या सर्कुलर जोड़ना हो तो चुनें।</small>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">नोटिस पब्लिश करें</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'dashboard' %}" class="text-muted text-decoration-none">← डैशबोर्ड पर वापस जाएं</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

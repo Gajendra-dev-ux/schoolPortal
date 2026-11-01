@@ -1,0 +1,31 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 p-4 mb-4 text-center bg-light">
+            <h2 class="text-success mb-2">🎉 टेस्ट सफलतापूर्वक जमा हो गया!</h2>
+            <h4 class="text-primary mb-3">{{ test.title }}</h4>
+            <h3 class="fw-bold">आपका स्कोर: {{ obtained_score }} / {{ total_score }}</h3>
+            <p class="mb-1 text-success fw-bold">✔️ सही उत्तर: {{ correct_count }} | ❌ गलत उत्तर: {{ incorrect_count }}</p>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+            <h4 class="text-secondary mb-3">📖 प्रश्नों के सही उत्तर और समाधान (Solutions)</h4>
+            <hr>
+            {% for ans in saved_answers %}
+                <div class="mb-4 p-3 border rounded bg-white">
+                    <p class="fw-bold">प्रश्न: {{ ans.question.question_text }}</p>
+                    {% if ans.question.question_type == 'mcq' %}
+                        <p class="mb-1">आपने चुना: <strong class="{% if ans.is_correct %}text-success{% else %}text-danger{% endif %}">{{ ans.selected_option|default:"कोई नहीं" }}</strong></p>
+                        <p class="mb-0 text-success"><strong>सहीं उत्तर (Correct Option): {{ ans.question.correct_option }}</strong></p>
+                    {% else %}
+                        <p class="text-muted">आपका लिखित उत्तर दर्ज कर लिया गया है, शिक्षक द्वारा जाँच की जाएगी।</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <a href="{% url 'dashboard' %}" class="btn btn-primary w-100 py-2 fw-bold">डैशबोर्ड पर वापस जाएं</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

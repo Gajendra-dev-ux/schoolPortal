@@ -1,0 +1,67 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2 class="text-primary">📊 स्टूडेंट रिस्पॉन्स और स्कोर शीट</h2>
+        <h4 class="text-secondary">{{ test.title }} <span class="badge bg-info text-dark">कक्षा: {{ test.school_class }}</span></h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                {% if students_summary %}
+                    {% for student_name, data in students_summary.items %}
+                        <div class="card mb-3 border-start border-primary border-4 bg-light">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="fw-bold text-dark mb-0">👨‍🎓 विद्यार्थी: {{ student_name }}</h5>
+                                    <div>
+                                        <span class="badge bg-success p-2">सही (Correct): {{ data.correct }}</span>
+                                        <span class="badge bg-danger p-2">गलत (Incorrect): {{ data.incorrect }}</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <ul class="list-group">
+                                    {% for ans in data.answers %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <p class="fw-bold mb-1">Q: {{ ans.question.question_text }}</p>
+                                                {% if ans.question.question_type == 'mcq' %}
+                                                    <small class="text-muted">छात्र का उत्तर: <strong>{{ ans.selected_option }}</strong></small>
+                                                {% else %}
+                                                    <small class="text-muted">टाइप किया गया: {{ ans.answer_text }}</small>
+                                                    {% if ans.answer_image %}
+                                                        <br><a href="{{ ans.answer_image.url }}" target="_blank" class="small">फोटो कॉपी देखें</a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                            <div>
+                                                {% if ans.question.question_type == 'mcq' %}
+                                                    {% if ans.is_correct %}
+                                                        <span class="badge bg-success">सਹੀ (Correct)</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger">गलत (Incorrect)</span>
+                                                    {% endif %}
+                                                {% else %}
+                                                    <span class="badge bg-warning text-dark">मैनुअल जाँच बाकी</span>
+                                                {% endif %}
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted text-center py-4">अभी तक किसी भी छात्र ने इस टेस्ट का उत्तर नहीं दिया है।</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mt-3">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">← डैशबोर्ड पर वापस जाएं</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

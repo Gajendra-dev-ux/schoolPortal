@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row">
+    <!-- Notice Board Section -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white fw-bold text-primary">📌 नवीनतम नोटिस बोर्ड</div>
+            <div class="card-body">
+                {% if notices %}
+                    <ul class="list-group list-group-flush">
+                        {% for notice in notices %}
+                            <li class="list-group-item">
+                                <h5 class="mb-1 text-dark">{{ notice.title }}</h5>
+                                <p class="mb-1 text-muted">{{ notice.content }}</p>
+                                <small class="text-secondary">दिनांक: {{ notice.date_posted|date:"d M Y" }}</small>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">अभी कोई नया नोटिस उपलब्ध नहीं है।</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Sidebar / Welcome -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body text-center">
+                <h4 class="card-title fw-bold">स्वागत है!</h4>
+                <p class="card-text">यह पोर्टल हमारे स्कूल के विद्यार्थियों और शिक्षकों के लिए बनाया गया है जहाँ वे ऑनलाइन मॉक टेस्ट और नोटिस देख सकते हैं।</p>
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn btn-light text-primary fw-bold">लॉगिन करें</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

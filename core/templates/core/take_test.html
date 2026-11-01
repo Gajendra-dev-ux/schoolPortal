@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-primary">{{ test.title }}</h3>
+                <p class="text-muted">कक्षा: {{ test.school_class }} | विषय: {{ test.subject }}</p>
+                <hr>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for question in questions %}
+                        <div class="mb-4 p-3 bg-light rounded border">
+                            <p class="fw-bold text-dark">प्रश्न {{ forloop.counter }}: {{ question.question_text }} <span class="text-danger float-end">({{ question.max_marks }} अंक)</span></p>
+                            
+                            {% if question.question_type == 'mcq' %}
+                                <!-- Clickable MCQ Options (No Typing Required!) -->
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="A" id="q{{ question.id }}_a" required>
+                                    <label class="form-check-label" for="q{{ question.id }}_a">A) {{ question.option_a }}</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="B" id="q{{ question.id }}_b">
+                                    <label class="form-check-label" for="q{{ question.id }}_b">B) {{ question.option_b }}</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="C" id="q{{ question.id }}_c">
+                                    <label class="form-check-label" for="q{{ question.id }}_c">C) {{ question.option_c }}</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" value="D" id="q{{ question.id }}_d">
+                                    <label class="form-check-label" for="q{{ question.id }}_d">D) {{ question.option_d }}</label>
+                                </div>
+                            {% else %}
+                                <!-- Subjective Typing & Optional Photo Upload -->
+                                <div class="mb-2">
+                                    <textarea name="answer_text_{{ question.id }}" class="form-control" rows="3" placeholder="अपना उत्तर यहाँ टाइप करें..."></textarea>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small text-muted">या कॉपी पर लिखकर उसका फोटो अपलोड करें:</label>
+                                    <input type="file" name="answer_image_{{ question.id }}" class="form-control" accept="image/*">
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    
+                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">टेस्ट सबमिट करें</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

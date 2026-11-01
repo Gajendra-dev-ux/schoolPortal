@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <form method="POST">
+            {% csrf_token %}
+            <div class="card shadow-sm border-0 p-4 mb-4 text-center bg-light">
+                <h2 class="text-primary mb-2">📊 छात्र कॉपियों का मूल्यांकन (Evaluation)</h2>
+                <h4 class="text-secondary mb-2">विद्यार्थी: <strong>{{ student_user.username }}</strong></h4>
+                <p class="text-muted mb-2">{{ test.title }} (विषय: {{ test.subject }})</p>
+                <h3 class="fw-bold text-success">कुल स्कोर: {{ total_obtained_score }} / {{ total_max_score }}</h3>
+            </div>
+
+            <div class="card shadow-sm border-0 p-4 mb-4">
+                <h4 class="text-secondary mb-3">📖 सभी प्रश्नों के उत्तर और मार्किंग</h4>
+                <hr>
+                
+                {% for item in saved_answers_data %}
+                    <div class="mb-4 p-3 border rounded bg-white shadow-sm">
+                        <p class="fw-bold text-dark">प्रश्न: {{ item.answer.question.question_text }} <span class="badge bg-secondary float-end">अधिकतम अंक: {{ item.answer.question.max_marks }}</span></p>
+                        
+                        {% if item.answer.question.question_type == 'mcq' %}
+                            <p class="mb-1">छात्र का उत्तर: <strong class="{% if item.answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ item.answer.selected_option|default:"कोई विकल्प नहीं" }}</strong></p>
+                            <p class="mb-0 text-success"><strong>सही उत्तर: {{ item.answer.question.correct_option }}</strong> | Result: {% if item.answer.is_correct %}<span class="text-success fw-bold">सही (+{{ item.answer.question.max_marks }})</span>{% else %}<span class="text-danger fw-bold">गलत (0)</span>{% endif %}</p>
+                        {% else %}
+                            <p class="mb-1 text-muted"><strong>लिखित उत्तर:</strong> {{ item.answer.answer_text|default:"कोई लिखित उत्तर नहीं" }}</p>
+                            {% if item.answer.answer_image %}
+                                <div class="mb-2">
+                                    <a href="{{ item.answer.answer_image.url }}" target="_blank" class="btn btn-sm btn-outline-primary">🖼️ कॉपी का फोटो देखें</a>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Teacher Marking Inputs for Subjective -->
+                            <div class="row mt-3 g-2 bg-light p-3 rounded">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-bold small">अंक दें (Marks):</label>
+                                    <input type="number" step="0.5" name="marks_{{ item.answer.id }}" class="form-control form-control-sm" value="{{ item.evaluation.obtained_marks|default:'' }}" min="0" max="{{ item.answer.question.max_marks }}" placeholder="प्राप्त अंक">
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label fw-bold small">शिक्षक की टिप्पणी (Remarks):</label>
+                                    <input type="text" name="remarks_{{ item.answer.id }}" class="form-control form-control-sm" value="{{ item.evaluation.teacher_remarks|default:'' }}" placeholder="सुझाव या टिप्पणी...">
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center">इस छात्र का कोई उत्तर नहीं मिला।</p>
+                {% endfor %}
+                
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{% url 'teacher_test_students' test.id %}" class="btn btn-secondary">← छात्र सूची पर वापस जाएं</a>
+                    <button type="submit" class="btn btn-success px-4 py-2 fw-bold">💾 मार्किंग सुरक्षित करें (Save Evaluation)</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

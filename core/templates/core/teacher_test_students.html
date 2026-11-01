@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2>👥 छात्र सूची (Attempted Students)</h2>
+        <h4 class="text-secondary">{{ test.title }} <span class="badge bg-info text-dark">कक्षा: {{ test.school_class }} ({{ test.subject }})</span></h4>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'teacher_class_tests' test.school_class %}" class="btn btn-outline-secondary">← टेस्ट सूची पर वापस जाएं</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                {% if students_data %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>विद्यार्थी का नाम (Student Name)</th>
+                                    <th>प्राप्त अंक (Score / Marks)</th>
+                                    <th class="text-center">कारਵਾਈ (Action)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student, data in students_data.items %}
+                                    <tr>
+                                        <td class="fw-bold text-dark">{{ student.username }}</td>
+                                        <td><span class="badge bg-success p-2">{{ data.obtained }} / {{ data.max }} अंक</span></td>
+                                        <td class="text-center">
+                                            <a href="{% url 'teacher_student_response' test.id student.id %}" class="btn btn-sm btn-primary fw-bold">📄 रिस्पॉन्स शीट देखें</a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-4 mb-0">इस टेस्ट को अभी तक किसी भी छात्र ने हल नहीं किया है।</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
