@@ -21,6 +21,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'gallery' %}">गैलरी</a></li>
                     {% if user.is_authenticated %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">डैशबोर्ड</a></li>
+                        <li class="nav-item"><a class="nav-link text-dark" href="{% url 'change_password' %}">🔑 पासवर्ड बदलें</a></li>
                         <li class="nav-item">
                             <form action="{% url 'logout' %}" method="post" class="d-inline">
                                 {% csrf_token %}
@@ -29,7 +30,6 @@
                         </li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">लॉगिन</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">रजिस्टर</a></li>
                     {% endif %}
                 </ul>
             </div>

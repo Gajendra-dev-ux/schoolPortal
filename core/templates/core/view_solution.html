@@ -16,8 +16,8 @@
                 <div class="mb-4 p-3 border rounded bg-white shadow-sm">
                     <p class="fw-bold text-dark">प्रश्न: {{ item.answer.question.question_text }}</p>
                     {% if item.answer.question.question_type == 'mcq' %}
-                        <p class="mb-1">आपने चुना था: <strong class="{% if item.answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ item.answer.selected_option|default:"कोई विकल्प नहीं" }}</strong></p>
-                        <p class="mb-0 text-success"><strong>सही उत्तर: {{ item.answer.question.correct_option }}</strong></p>
+                        <p class="mb-1">आपने चुना था: <strong class="{% if item.answer.is_correct %}text-success{% else %}text-danger{% endif %}">{{ item.student_opt_full|default:"कोई विकल्प नहीं चुना" }}</strong></p>
+                        <p class="mb-0 text-success"><strong>सही उत्तर: {{ item.correct_opt_full }}</strong></p>
                     {% else %}
                         <p class="mb-1 text-muted">आपका लिखित उत्तर: {{ item.answer.answer_text|default:"लिखित उत्तर उपलब्ध नहीं" }}</p>
                         {% if item.answer.answer_image %}

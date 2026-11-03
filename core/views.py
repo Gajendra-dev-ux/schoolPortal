@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from .forms import UserRegistrationForm
 from .models import UserProfile, Notice, MockTest, SchoolEvent, EventPhoto, Evaluation, Question, StudentAnswer
@@ -11,29 +12,35 @@ def home_view(request):
     events = SchoolEvent.objects.all().order_by('-date')[:3]
     return render(request, 'core/home.html', {'notices': notices, 'events': events})
 
-# Registration View
-def register_view(request):
+# 1. Public Register View ko Hata diya gaya hai (Admin hi user create karega)
+
+@login_required
+def change_password_view(request):
     if request.method == 'POST':
-        form = UserRegistrationForm(request.POST)
+        form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.set_password(form.cleaned_data['password'])
-            user.save()
-            
-            # UserProfile banate waqt student_class bhi save karna
-            u_type = form.cleaned_data['user_type']
-            s_class = form.cleaned_data.get('student_class') if u_type == 'student' else ''
-            
-            UserProfile.objects.create(
-                user=user, 
-                user_type=u_type,
-                student_class=s_class
-            )
-            login(request, user)
+            user = form.save()
+            update_session_auth_hash(request, user)  # Session active rakhne ke liye
             return redirect('dashboard')
     else:
-        form = UserRegistrationForm()
-    return render(request, 'core/register.html', {'form': form})
+        form = PasswordChangeForm(request.user)
+    return render(request, 'core/change_password.html', {'form': form})
+
+# Mobile Number ya Username ke zariye Password Reset / Recovery View
+def forgot_password_view(request):
+    message = None
+    if request.method == 'POST':
+        username_or_mobile = request.POST.get('identifier')
+        # Aap chahein toh UserProfile mein mobile number field rakh sakte hain ya username se match kar sakte hain
+        try:
+            # Agar username se search karna ho
+            user = User.objects.get(username=username_or_mobile)
+            # School portal ke liye hum school admin se contact karne ka message ya direct temporary reset dikha sakte hain
+            message = f"नमस्ते {user.username}! अपना पासवर्ड रीसेट करने के लिए कृपया स्कूल के एडमिन (Admin) से संपर्क करें।"
+        except User.DoesNotExist:
+            message = "इस उपयोगकर्ता नाम (Username) से कोई खाता नहीं मिला।"
+            
+    return render(request, 'core/forgot_password.html', {'message': message})
 
 # Role-based Dashboard Redirection View
 @login_required
@@ -98,11 +105,29 @@ def view_solution(request, test_id):
                 evaluation = Evaluation.objects.filter(student_answer=latest_ans).first()
                 if evaluation:
                     obtained_score += evaluation.obtained_marks
+
+        def get_opt_text(opt_letter):
+            if opt_letter == 'A': return q.option_a
+            if opt_letter == 'B': return q.option_b
+            if opt_letter == 'C': return q.option_c
+            if opt_letter == 'D': return q.option_d
+            return ''
+
+        student_opt_full = ""
+        correct_opt_full = ""
+        
+        if latest_ans and latest_ans.selected_option:
+            student_opt_full = f"{latest_ans.selected_option}) {get_opt_text(latest_ans.selected_option)}"
+        
+        if q.correct_option:
+            correct_opt_full = f"{q.correct_option}) {get_opt_text(q.correct_option)}"
                     
-            saved_answers_data.append({
-                'answer': latest_ans,
-                'evaluation': evaluation
-            })
+        saved_answers_data.append({
+            'answer': latest_ans,
+            'evaluation': evaluation,
+            'student_opt_full': student_opt_full,
+            'correct_opt_full': correct_opt_full
+        })
 
     return render(request, 'core/view_solution.html', {
         'test': test,
@@ -377,7 +402,6 @@ def teacher_student_response(request, test_id, student_id):
     test = get_object_or_404(MockTest, id=test_id)
     student = get_object_or_404(User, id=student_id)
     
-    # Agar teacher ne form submit kiya hai (Marks aur Remarks save karne ke liye)
     if request.method == 'POST':
         answers = StudentAnswer.objects.filter(student=student, question__test=test)
         for ans in answers:
@@ -387,7 +411,6 @@ def teacher_student_response(request, test_id, student_id):
             if marks_str is not None and marks_str != '':
                 try:
                     obtained = float(marks_str)
-                    # Evaluation object create ya update karna
                     Evaluation.objects.update_or_create(
                         student_answer=ans,
                         defaults={
@@ -400,7 +423,6 @@ def teacher_student_response(request, test_id, student_id):
                     pass
         return redirect('teacher_test_students', test_id=test.id)
 
-    # Aakhri attempt ke answers aur unki evaluations nikalna
     questions = test.questions.all()
     saved_answers_data = []
     total_obtained_score = 0
@@ -410,21 +432,39 @@ def teacher_student_response(request, test_id, student_id):
         total_max_score += q.max_marks
         latest_ans = StudentAnswer.objects.filter(student=student, question=q).order_by('-submitted_at').first()
         
+        evaluation = None
         if latest_ans:
-            # MCQ ka score automatic jude, subjective ka evaluation se aayega
             if q.question_type == 'mcq':
-                q_score = q.max_marks if latest_ans.is_correct else 0
-                total_obtained_score += q_score
-                evaluation = None
+                if latest_ans.is_correct:
+                    total_obtained_score += q.max_marks
             else:
                 evaluation = Evaluation.objects.filter(student_answer=latest_ans).first()
                 if evaluation:
                     total_obtained_score += evaluation.obtained_marks
-            
-            saved_answers_data.append({
-                'answer': latest_ans,
-                'evaluation': evaluation
-            })
+                    
+        # Helper function to get option text based on option letter (A, B, C, D)
+        def get_opt_text(opt_letter):
+            if opt_letter == 'A': return q.option_a
+            if opt_letter == 'B': return q.option_b
+            if opt_letter == 'C': return q.option_c
+            if opt_letter == 'D': return q.option_d
+            return ''
+
+        student_opt_full = ""
+        correct_opt_full = ""
+        
+        if latest_ans and latest_ans.selected_option:
+            student_opt_full = f"{latest_ans.selected_option}) {get_opt_text(latest_ans.selected_option)}"
+        
+        if q.correct_option:
+            correct_opt_full = f"{q.correct_option}) {get_opt_text(q.correct_option)}"
+
+        saved_answers_data.append({
+            'answer': latest_ans,
+            'evaluation': evaluation,
+            'student_opt_full': student_opt_full,
+            'correct_opt_full': correct_opt_full
+        })
 
     return render(request, 'core/teacher_student_response.html', {
         'test': test,
@@ -444,3 +484,91 @@ def event_detail_view(request, event_id):
     event = get_object_or_404(SchoolEvent, id=event_id)
     all_photos = event.photos.all() # Is event ki saari photos
     return render(request, 'core/event_detail.html', {'event': event, 'all_photos': all_photos})
+
+@login_required
+def preview_mock_test(request, test_id):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != 'teacher':
+        return redirect('dashboard')
+        
+    test = get_object_or_404(MockTest, id=test_id)
+    questions = test.questions.all()
+    
+    return render(request, 'core/preview_mock_test.html', {
+        'test': test,
+        'questions': questions
+    })
+
+@login_required
+def edit_mock_test(request, test_id):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != 'teacher':
+        return redirect('dashboard')
+        
+    test = get_object_or_404(MockTest, id=test_id)
+    
+    if request.method == 'POST':
+        # 1. Test basic details update karna
+        test.title = request.POST.get('title')
+        test.subject = request.POST.get('subject')
+        test.school_class = request.POST.get('school_class')
+        test.save()
+        
+        # 2. Questions update / add karne ka logic
+        # Pehle check karein ki kaun se question IDs submit hue hain
+        question_ids = request.POST.getlist('question_id')
+        q_texts = request.POST.getlist('question_text')
+        q_types = request.POST.getlist('question_type')
+        max_marks = request.POST.getlist('max_marks')
+        
+        opt_as = request.POST.getlist('option_a')
+        opt_bs = request.POST.getlist('option_b')
+        opt_cs = request.POST.getlist('option_c')
+        opt_ds = request.POST.getlist('option_d')
+        correct_opts = request.POST.getlist('correct_option')
+        
+        # Maujood saare questions ki list
+        existing_q_ids = [str(q.id) for q in test.questions.all()]
+        submitted_q_ids = [qid for qid in question_ids if qid]
+        
+        # Jo questions teacher ne hata diye hain (delete kar diye hain), unhe delete karna
+        for qid in existing_q_ids:
+            if qid not in submitted_q_ids:
+                Question.objects.filter(id=qid).delete()
+                
+        # Sabhi questions ko loop karke update ya create karna
+        for i in range(len(q_texts)):
+            if i < len(question_ids) and question_ids[i]:
+                # Purana question update karna
+                try:
+                    q = Question.objects.get(id=question_ids[i], test=test)
+                    q.question_text = q_texts[i]
+                    q.question_type = q_types[i]
+                    q.max_marks = max_marks[i] if max_marks[i] else 1
+                    if q_types[i] == 'mcq':
+                        q.option_a = opt_as[i] if i < len(opt_as) else ''
+                        q.option_b = opt_bs[i] if i < len(opt_bs) else ''
+                        q.option_c = opt_cs[i] if i < len(opt_cs) else ''
+                        q.option_d = opt_ds[i] if i < len(opt_ds) else ''
+                        q.correct_option = correct_opts[i] if i < len(correct_opts) else 'A'
+                    q.save()
+                except Question.DoesNotExist:
+                    pass
+            else:
+                # Naya question add karna
+                q_type = q_types[i] if i < len(q_types) else 'mcq'
+                Question.objects.create(
+                    test=test,
+                    question_text=q_texts[i],
+                    question_type=q_type,
+                    max_marks=max_marks[i] if (i < len(max_marks) and max_marks[i]) else 1,
+                    option_a=opt_as[i] if (i < len(opt_as) and q_type == 'mcq') else '',
+                    option_b=opt_bs[i] if (i < len(opt_bs) and q_type == 'mcq') else '',
+                    option_c=opt_cs[i] if (i < len(opt_cs) and q_type == 'mcq') else '',
+                    option_d=opt_ds[i] if (i < len(opt_ds) and q_type == 'mcq') else '',
+                    correct_option=correct_opts[i] if (i < len(correct_opts) and q_type == 'mcq') else 'A'
+                )
+                
+        return redirect('teacher_class_tests', school_class=test.school_class)
+        
+    return render(request, 'core/edit_mock_test.html', {'test': test})

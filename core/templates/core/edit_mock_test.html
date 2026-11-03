@@ -1,0 +1,170 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-primary mb-4 fw-bold">✏️ मॉक टेस्ट और प्रश्न एडिट करें</h3>
+                
+                <form method="POST" id="editTestForm">
+                    {% csrf_token %}
+                    
+                    <!-- Test Basic Details -->
+                    <div class="bg-light p-3 rounded mb-4 border">
+                        <h5 class="text-secondary mb-3">📋 टेस्ट की मुख्य जानकारी</h5>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">शीर्षक (Title)</label>
+                                <input type="text" name="title" class="form-control" value="{{ test.title }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">विषय (Subject)</label>
+                                <input type="text" name="subject" class="form-control" value="{{ test.subject }}" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">कक्षा (Class)</label>
+                                <select name="school_class" class="form-select" required>
+                                    <option value="6th" {% if test.school_class == '6th' %}selected{% endif %}>6th</option>
+                                    <option value="7th" {% if test.school_class == '7th' %}selected{% endif %}>7th</option>
+                                    <option value="8th" {% if test.school_class == '8th' %}selected{% endif %}>8th</option>
+                                    <option value="9th" {% if test.school_class == '9th' %}selected{% endif %}>9th</option>
+                                    <option value="10th" {% if test.school_class == '10th' %}selected{% endif %}>10th</option>
+                                    <option value="11th" {% if test.school_class == '11th' %}selected{% endif %}>11th</option>
+                                    <option value="12th" {% if test.school_class == '12th' %}selected{% endif %}>12th</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h4 class="text-secondary mb-3">❓ प्रश्न सूची (Questions Editor)</h4>
+                    <div id="questionsContainer">
+                        {% for q in test.questions.all %}
+                            <div class="question-card border p-3 mb-3 rounded bg-white shadow-sm position-relative">
+                                <input type="hidden" name="question_id" value="{{ q.id }}">
+                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" onclick="removeQuestionCard(this)">✕ हटाएँ</button>
+                                
+                                <div class="mb-2">
+                                    <label class="form-label fw-bold">प्रश्न {{ forloop.counter }}</label>
+                                    <textarea name="question_text" class="form-control" rows="2" required>{{ q.question_text }}</textarea>
+                                </div>
+                                
+                                <div class="row g-2 mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">प्रश्न का प्रकार (Type):</label>
+                                        <select name="question_type" class="form-select form-select-sm q-type-select" onchange="toggleOptions(this)">
+                                            <option value="mcq" {% if q.question_type == 'mcq' %}selected{% endif %}>MCQ (बहुविकल्पीय)</option>
+                                            <option value="subjective" {% if q.question_type == 'subjective' %}selected{% endif %}>लिखित / Subjective (Copy Upload)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">अधिकतम अंक (Max Marks):</label>
+                                        <input type="number" name="max_marks" class="form-control form-control-sm" value="{{ q.max_marks }}" min="1" required>
+                                    </div>
+                                </div>
+                                
+                                <!-- MCQ Options Block -->
+                                <div class="mcq-options-block" {% if q.question_type == 'subjective' %}style="display:none;"{% endif %}>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-6"><input type="text" name="option_a" class="form-control form-control-sm" value="{{ q.option_a }}" placeholder="विकल्प A"></div>
+                                        <div class="col-md-6"><input type="text" name="option_b" class="form-control form-control-sm" value="{{ q.option_b }}" placeholder="विकल्प B"></div>
+                                        <div class="col-md-6"><input type="text" name="option_c" class="form-control form-control-sm" value="{{ q.option_c }}" placeholder="विकल्प C"></div>
+                                        <div class="col-md-6"><input type="text" name="option_d" class="form-control form-control-sm" value="{{ q.option_d }}" placeholder="विकल्प D"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small fw-bold text-success">सही विकल्प (Correct Option):</label>
+                                        <select name="correct_option" class="form-select form-select-sm">
+                                            <option value="A" {% if q.correct_option == 'A' %}selected{% endif %}>A</option>
+                                            <option value="B" {% if q.correct_option == 'B' %}selected{% endif %}>B</option>
+                                            <option value="C" {% if q.correct_option == 'C' %}selected{% endif %}>C</option>
+                                            <option value="D" {% if q.correct_option == 'D' %}selected{% endif %}>D</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="btn btn-outline-primary mb-4 w-100 fw-bold" onclick="addNewQuestion()">+ और प्रश्न जोड़ें (Add Question)</button>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'teacher_class_tests' test.school_class %}" class="btn btn-secondary">← वापस जाएं</a>
+                        <button type="submit" class="btn btn-warning fw-bold px-4 text-dark">💾 सभी परिवर्तन सुरक्षित करें (Save Test)</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Dynamic Question Add/Remove & Type Toggle -->
+<script>
+function toggleOptions(selectElem) {
+    const card = selectElem.closest('.question-card');
+    const mcqBlock = card.querySelector('.mcq-options-block');
+    if (selectElem.value === 'subjective') {
+        mcqBlock.style.display = 'none';
+    } else {
+        mcqBlock.style.display = 'block';
+    }
+}
+
+function removeQuestionCard(btn) {
+    const cards = document.querySelectorAll('.question-card');
+    if (cards.length > 1) {
+        btn.closest('.question-card').remove();
+    } else {
+        alert('टेस्ट में कम से कम एक प्रश्न होना अनिवार्य है।');
+    }
+}
+
+function addNewQuestion() {
+    const container = document.getElementById('questionsContainer');
+    const index = container.querySelectorAll('.question-card').length + 1;
+    
+    const html = `
+        <div class="question-card border p-3 mb-3 rounded bg-white shadow-sm position-relative">
+            <input type="hidden" name="question_id" value="">
+            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" onclick="removeQuestionCard(this)">✕ हटाएँ</button>
+            
+            <div class="mb-2">
+                <label class="form-label fw-bold">नया प्रश्न ${index}</label>
+                <textarea name="question_text" class="form-control" rows="2" required placeholder="प्रश्न यहाँ लिखें..."></textarea>
+            </div>
+            
+            <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">प्रश्न का प्रकार (Type):</label>
+                    <select name="question_type" class="form-select form-select-sm q-type-select" onchange="toggleOptions(this)">
+                        <option value="mcq">MCQ (बहुविकल्पीय)</option>
+                        <option value="subjective">लिखित / Subjective (Copy Upload)</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold">अधिकतम अंक (Max Marks):</label>
+                    <input type="number" name="max_marks" class="form-control form-control-sm" value="1" min="1" required>
+                </div>
+            </div>
+            
+            <div class="mcq-options-block">
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6"><input type="text" name="option_a" class="form-control form-control-sm" placeholder="विकल्प A"></div>
+                    <div class="col-md-6"><input type="text" name="option_b" class="form-control form-control-sm" placeholder="विकल्प B"></div>
+                    <div class="col-md-6"><input type="text" name="option_c" class="form-control form-control-sm" placeholder="विकल्प C"></div>
+                    <div class="col-md-6"><input type="text" name="option_d" class="form-control form-control-sm" placeholder="विकल्प D"></div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-bold text-success">सही विकल्प (Correct Option):</label>
+                    <select name="correct_option" class="form-select form-select-sm">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+}
+</script>
+{% endblock %}

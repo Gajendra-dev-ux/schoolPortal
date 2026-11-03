@@ -4,9 +4,11 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
     path('', views.home_view, name='home'),
-    path('register/', views.register_view, name='register'),
+    # path('register/', views.register_view, name='register'),
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+    path('password/change/', views.change_password_view, name='change_password'),
+    path('password/forgot/', views.forgot_password_view, name='forgot_password'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
 
     path('notice/add/', views.add_notice, name='add_notice'),
@@ -25,4 +27,6 @@ urlpatterns = [
     path('gallery/', views.gallery_view, name='gallery'),
     path('gallery/event/<int:event_id>/', views.event_detail_view, name='event_detail'),
     path('gallery/add/', views.add_event, name='add_event'),
+    path('teacher/test/<int:test_id>/preview/', views.preview_mock_test, name='preview_mock_test'),
+    path('teacher/test/<int:test_id>/edit/', views.edit_mock_test, name='edit_mock_test'),
 ]

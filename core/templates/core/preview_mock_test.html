@@ -1,0 +1,56 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Top Action Bar (Print hone par yeh hide ho jayega) -->
+        <div class="d-flex justify-content-between align-items-center mb-4 print-hide">
+            <a href="{% url 'teacher_class_tests' test.school_class %}" class="btn btn-outline-secondary">← वापस जाएं</a>
+            <button onclick="window.print();" class="btn btn-success fw-bold">🖨️ इस टेस्ट को प्रिंट करें (Print Test)</button>
+        </div>
+
+        <!-- Test Header Sheet -->
+        <div class="card shadow-sm border-0 p-4 mb-4 bg-white">
+            <div class="text-center border-bottom pb-3 mb-3">
+                <h3 class="fw-bold text-primary">शासकीय कन्या उच्चतर माध्यमिक शाला</h3>
+                <h5 class="text-secondary">{{ test.title }}</h5>
+                <p class="text-muted mb-0">कक्षा: {{ test.school_class }} | विषय: {{ test.subject }}</p>
+            </div>
+
+            <h5 class="text-secondary mb-3">प्रश्न पत्र (Question Paper Preview):</h5>
+            
+            {% for q in questions %}
+                <div class="mb-1 p-1 border rounded bg-light">
+                    <p class="fw-bold mb-1 text-dark">प्र. {{ forloop.counter }}) {{ q.question_text }} <span class="badge bg-secondary float-end">अंक: {{ q.max_marks }}</span></p>
+                    
+                    {% if q.question_type == 'mcq' %}
+                        <ul class="list-unstyled ms-3 mb-1">
+                            <li>A) {{ q.option_a }}</li>
+                            <li>B) {{ q.option_b }}</li>
+                            <li>C) {{ q.option_c }}</li>
+                            <li>D) {{ q.option_d }}</li>
+                        </ul>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p class="text-muted text-center">इस टेस्ट में अभी कोई प्रश्न नहीं जोड़े गए हैं।</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- CSS for clean printing -->
+<style>
+@media print {
+    .print-hide, .navbar, footer {
+        display: none !important;
+    }
+    body {
+        background-color: white !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}
