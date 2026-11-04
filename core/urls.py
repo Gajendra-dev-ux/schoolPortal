@@ -29,4 +29,8 @@ urlpatterns = [
     path('gallery/add/', views.add_event, name='add_event'),
     path('teacher/test/<int:test_id>/preview/', views.preview_mock_test, name='preview_mock_test'),
     path('teacher/test/<int:test_id>/edit/', views.edit_mock_test, name='edit_mock_test'),
+    path('teacher/students/classes/', views.teacher_classes_view, name='teacher_classes'),
+    path('teacher/students/class/<str:school_class>/', views.teacher_class_students_view, name='teacher_class_students'),
+    path('teacher/student/<int:student_id>/edit/', views.teacher_edit_student_view, name='teacher_edit_student'),
+    path('teacher/student/<int:student_id>/delete/', views.teacher_delete_student_view, name='teacher_delete_student'),
 ]

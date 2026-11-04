@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2>📚 कक्षा {{ school_class }} - छात्र प्रबंधन (Student Management)</h2>
+        <p class="text-muted">यहाँ इस कक्षा के सभी छात्रों की सूची है। आप नए छात्र जोड़ सकते हैं या विवरण अपडेट कर सकते हैं।</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'teacher_classes' %}" class="btn btn-outline-secondary">← कक्षाओं की सूची पर वापस जाएं</a>
+    </div>
+</div>
+
+{% if message %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ message }}
+        {% if generated_pass %}
+            <hr>
+            <strong class="text-dark">🔑 जनरेटेड लॉगिन विवरण:</strong> <code>{{ generated_pass }}</code>
+        {% endif %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+{% endif %}
+
+<div class="row g-4">
+    <!-- Left Column: Add Student Form -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h4 class="card-title text-success mb-3 fw-bold">➕ नया छात्र जोड़ें</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">छात्र का पूरा नाम (Full Name)</label>
+                        <input type="text" name="full_name" class="form-control" required placeholder="पूरा नाम लिखें...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">रोल नंबर (Roll Number / Username)</label>
+                        <input type="text" name="roll_no" class="form-control" required placeholder="जैसे: 202601">
+                        <div class="form-text small">यह छात्र का यूज़रनेम बनेगा।</div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">छात्र रजिस्टर करें</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Student List Table -->
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h4 class="card-title text-dark mb-3 fw-bold">📋 पंजीकृत छात्र (Total: {{ student_profiles.count }})</h4>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>क्र.सं.</th>
+                                <th>नाम</th>
+                                <th>रोल नंबर (Username)</th>
+                                <th class="text-end">कार्य (Actions)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sp in student_profiles %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td class="fw-bold">{{ sp.user.first_name }}</td>
+                                    <td><code>{{ sp.user.username }}</code></td>
+                                    <td class="text-end">
+                                        <a href="{% url 'teacher_edit_student' sp.user.id %}" class="btn btn-sm btn-warning fw-bold">✏️ एडिट</a>
+                                        <a href="{% url 'teacher_delete_student' sp.user.id %}" class="btn btn-sm btn-danger fw-bold" onclick="return confirm('क्या आप वाकई इस छात्र को हटाना चाहते हैं?');">🗑️ हटाएं</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted py-4">कक्षा {{ school_class }} में अभी कोई छात्र नहीं जोड़ा गया है।</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -572,3 +572,101 @@ def edit_mock_test(request, test_id):
         return redirect('teacher_class_tests', school_class=test.school_class)
         
     return render(request, 'core/edit_mock_test.html', {'test': test})
+
+@login_required
+def teacher_classes_view(request):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != 'teacher' or (not request.user.is_superuser and not profile.can_publish):
+        return redirect('dashboard')
+        
+    classes = ['6th', '7th', '8th', '9th', '10th', '11th', '12th']
+    return render(request, 'core/teacher_classes.html', {'classes': classes})
+
+@login_required
+def teacher_class_students_view(request, school_class):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != 'teacher' or (not request.user.is_superuser and not profile.can_publish):
+        return redirect('dashboard')
+        
+    # Us class ke sabhi students fetch karna
+    student_profiles = UserProfile.objects.filter(user_type='student', student_class=school_class)
+    
+    message = None
+    generated_pass = None
+    
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        roll_no = request.POST.get('roll_no')
+        
+        # Check karein ki kya is roll no (username) se user pehle se hai
+        if User.objects.filter(username=roll_no).exists():
+            message = f"त्रुटि: रोल नंबर '{roll_no}' वाला छात्र पहले से पंजीकृत है!"
+        else:
+            # Password generation logic: First 4 chars of first name + last 4 digits of roll no
+            first_name = full_name.strip().split()[0]
+            prefix = first_name[:4].lower()
+            suffix = roll_no[-4:] if len(roll_no) >= 4 else roll_no
+            raw_password = f"{prefix}{suffix}"
+            
+            # Create User
+            new_user = User.objects.create_user(
+                username=roll_no,
+                first_name=full_name,
+                password=raw_password
+            )
+            
+            # Create UserProfile
+            UserProfile.objects.create(
+                user=new_user,
+                user_type='student',
+                student_class=school_class
+            )
+            
+            message = f"छात्र '{full_name}' सफलतापूर्वक जोड़ दिए गए हैं!"
+            generated_pass = f"यूज़रनेम: {roll_no} | पासवर्ड: {raw_password}"
+
+    return render(request, 'core/teacher_class_students.html', {
+        'school_class': school_class,
+        'student_profiles': student_profiles,
+        'message': message,
+        'generated_pass': generated_pass
+    })
+
+@login_required
+def teacher_edit_student_view(request, student_id):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != 'teacher' or (not request.user.is_superuser and not profile.can_publish):
+        return redirect('dashboard')
+        
+    student_user = get_object_or_404(User, id=student_id)
+    student_profile = get_object_or_404(UserProfile, user=student_user, user_type='student')
+    
+    if request.method == 'POST':
+        student_user.first_name = request.POST.get('full_name')
+        new_roll = request.POST.get('roll_no')
+        if new_roll:
+            student_user.username = new_roll
+        student_user.save()
+        
+        student_profile.student_class = request.POST.get('school_class')
+        student_profile.save()
+        
+        return redirect('teacher_class_students', school_class=student_profile.student_class)
+        
+    return render(request, 'core/teacher_edit_student.html', {
+        'student_user': student_user,
+        'student_profile': student_profile
+    })
+
+@login_required
+def teacher_delete_student_view(request, student_id):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != 'teacher' or (not request.user.is_superuser and not profile.can_publish):
+        return redirect('dashboard')
+        
+    student_user = get_object_or_404(User, id=student_id)
+    student_profile = UserProfile.objects.filter(user=student_user, user_type='student').first()
+    
+    school_class = student_profile.student_class if student_profile else '9th'
+    student_user.delete()
+    return redirect('teacher_class_students', school_class=school_class)

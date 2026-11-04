@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h3 class="card-title text-warning text-dark mb-4 fw-bold">✏️ छात्र विवरण अपडेट करें</h3>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">छात्र का नाम</label>
+                        <input type="text" name="full_name" class="form-control" value="{{ student_user.first_name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">रोल नंबर (Username)</label>
+                        <input type="text" name="roll_no" class="form-control" value="{{ student_user.username }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">कक्षा (Class)</label>
+                        <select name="school_class" class="form-select" required>
+                            <option value="6th" {% if student_profile.student_class == '6th' %}selected{% endif %}>6th</option>
+                            <option value="7th" {% if student_profile.student_class == '7th' %}selected{% endif %}>7th</option>
+                            <option value="8th" {% if student_profile.student_class == '8th' %}selected{% endif %}>8th</option>
+                            <option value="9th" {% if student_profile.student_class == '9th' %}selected{% endif %}>9th</option>
+                            <option value="10th" {% if student_profile.student_class == '10th' %}selected{% endif %}>10th</option>
+                            <option value="11th" {% if student_profile.student_class == '11th' %}selected{% endif %}>11th</option>
+                            <option value="12th" {% if student_profile.student_class == '12th' %}selected{% endif %}>12th</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-warning w-100 fw-bold text-dark">परिवर्तन सुरक्षित करें</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'teacher_class_students' student_profile.student_class %}" class="text-muted text-decoration-none">← वापस जाएं</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2>👥 कक्षा चुनें (Select Class for Students)</h2>
+        <p class="text-muted">जिस कक्षा के छात्रों की सूची देखना या नए छात्र जोड़ना चाहते हैं, उस पर क्लिक करें।</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">← डैशबोर्ड पर वापस जाएं</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for c in classes %}
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 h-100 text-center p-4 bg-white">
+                <div class="card-body">
+                    <h3 class="card-title fw-bold text-primary mb-3">कक्षा {{ c }}</h3>
+                    <a href="{% url 'teacher_class_students' c %}" class="btn btn-outline-primary w-100 fw-bold">छात्र सूची देखें & जोड़ें →</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
